@@ -122,6 +122,15 @@ controller.hears(['aka apps'], 'ambient', function(bot, message) {
 });
 
 
+
+controller.hears(['^aka apps:info -a [a-zA-Z]+-[a-zA-Z]+\s*$'], 'ambient', function(bot, message) {
+    let appName = message.text.replace('aka apps:info -a ', '');
+    appName = appName.trim();
+
+    bot.reply(message, appName);
+});
+
+
 function usage_tip() {
     console.log('~~~~~~~~~~');
     console.log('USAGE');
