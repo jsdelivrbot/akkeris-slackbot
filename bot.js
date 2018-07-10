@@ -45,7 +45,7 @@ webserver.use(session({
 }));
 
 webserver.use((req, res, next) => {
-    if (req.session.token || req.path === '/oauth/callback') {
+    if (req.session.token || req.path === '/oauth/callback' || req.path === '/slack/receive') {
         next();
     } else {
         req.session.redirect = req.originalUrl;
@@ -54,8 +54,6 @@ webserver.use((req, res, next) => {
 });
 
 webserver.get('/oauth/callback', (req, res) => {
-    console.log(`Client ID: ${akaClientId}`);
-    console.log(`Client Secret: ${akaClientSecret}`);
     request.post(`${authEndpoint}/access_token`, {
       form: {
         client_id: akaClientId,
@@ -89,10 +87,8 @@ require(__dirname + '/components/onboarding.js')(controller);
 const axios = require('axios');
 
 controller.hears(['aka'], 'ambient', function(bot, message) {
-    bot.reply(message, `${CLIENT_URI}`);
+    bot.reply(message, `${clientURI}`);
 });
-
-
 
 /*
 const akkerisApi = process.env.AKKERIS_API;
