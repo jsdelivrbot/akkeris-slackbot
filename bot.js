@@ -6,7 +6,6 @@ var Botkit = require('botkit');
 const request = require('request');
 const session = require('express-session');
 const axios = require('axios');
-const proxy = require('express-http-proxy');
 const bodyParser = require('body-parser');
 
 const clientURI = process.env.CLIENT_URI;
@@ -23,6 +22,8 @@ var bot_options = {
     // debug: true,
     scopes: ['bot'],
 };
+
+var sessionToken;
 
 // Use a mongo database if specified, otherwise store in a JSON file local to the app.
 if (databaseUrl) {
@@ -52,7 +53,6 @@ webserver.use(session({
 
 webserver.use((req, res, next) => {
     if (req.session.token || req.path === '/oauth/callback' || req.path === '/slack/receive') {
-        if (req.session.token){ console.log(`Bearer ${req.session.token}`); }
         next();
     } else {
         req.session.redirect = req.originalUrl;
@@ -70,6 +70,7 @@ webserver.get('/oauth/callback', (req, res) => {
       },
     }, (err, response, body) => {
       req.session.token = JSON.parse(body).access_token;
+      sessionToken = req.session.token;
       res.redirect(req.session.redirect || '/');
     });
   });
@@ -82,13 +83,6 @@ webserver.get('/', function(req, res){
   });
 })
 
-webserver.use('/api', proxy(`${akkerisApi}`, {
-    proxyReqOptDecorator(reqOpts, srcReq) {
-      reqOpts.headers.Authorization = `Bearer ${srcReq.session.token}`;
-      return reqOpts;
-    },
-  }));
-
 // Bot Messages
 
 // Set up a simple storage backend for keeping a record of customers
@@ -98,10 +92,13 @@ require(__dirname + '/components/user_registration.js')(controller);
 require(__dirname + '/components/onboarding.js')(controller);
 
 controller.hears(['aka apps'], 'ambient', function(bot, message) {
-    axios.get(`127.0.0.1:${process.env.PORT}/api/apps`).then(function(response) {
-        bot.reply(message, `${response.data}`);
-    }).catch(err => {
-        bot.reply(message, `${err}`);
+
+   axios.get(`${akkerisApi}/api/apps`, {
+       headers: {'Authorization': `Bearer ${sessionToken}`}
+   }).then(res => {
+       bot.reply(message, `${response.data}`);
+   }).catch(err => {
+       bot.reply(message, `${err}`);
     });
 });
 
