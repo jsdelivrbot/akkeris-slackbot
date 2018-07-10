@@ -7,6 +7,7 @@ const request = require('request');
 const session = require('express-session');
 const axios = require('axios');
 const proxy = require('express-http-proxy');
+const bodyParser = require('body-parser');
 
 const clientURI = process.env.CLIENT_URI;
 const authEndpoint = process.env.OAUTH_ENDPOINT;
@@ -40,6 +41,8 @@ controller.startTicking();
 // Set up an Express-powered webserver to expose oauth and webhook endpoints
 var webserver = require(__dirname + '/components/express_webserver.js')(controller);
 
+webserver.use(bodyParser.json());
+
 webserver.use(session({
     secret: sessionSecret,
     resave: false,
@@ -67,8 +70,6 @@ webserver.get('/oauth/callback', (req, res) => {
     }, (err, response, body) => {
       req.session.token = JSON.parse(body).access_token;
       res.redirect(req.session.redirect || '/');
-      console.log(`req.session.token = ${req.session.token}`);
-      console.log(`req.query.code = ${req.query.code}`);
     });
   });
 
@@ -96,7 +97,7 @@ require(__dirname + '/components/user_registration.js')(controller);
 require(__dirname + '/components/onboarding.js')(controller);
 
 controller.hears(['aka apps'], 'ambient', function(bot, message) {
-    axios.get('/api/apps').then(function(response) {
+    axios.get(`127.0.0.1:${PORT}/api/apps`).then(function(response) {
         bot.reply(message, `${response.data}`);
     }).catch(err => {
         bot.reply(message, `${err}`);
