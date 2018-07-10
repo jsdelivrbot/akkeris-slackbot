@@ -7,6 +7,7 @@ const request = require('request');
 const session = require('express-session');
 const axios = require('axios');
 const bodyParser = require('body-parser');
+const moment = require('moment');
 
 const clientURI = process.env.CLIENT_URI;
 const authEndpoint = process.env.OAUTH_ENDPOINT;
@@ -95,9 +96,18 @@ controller.hears(['aka apps'], 'ambient', function(bot, message) {
    axios.get(`${akkerisApi}/api/apps`, {
        headers: {'Authorization': `Bearer ${sessionToken}`}
    }).then(res => {
-       bot.reply(message, JSON.stringify(res.data));
+       let currentTime = moment().format('MMM-Do-YY-h:mm:ss');
+       bot.api.files.upload({
+            channels: message.channel,
+            content: JSON.stringify(res.data, null, 2),
+            filename: `aka-apps_${currentTime}.json`,
+            filetype: 'javascript',
+            title: `Result of 'aka apps' @ ${currentTime}`,
+       }, (err, response) => {
+           bot.reply(message, JSON.stringify(err));
+       });
    }).catch(err => {
-       bot.reply(message, JSON.stringify(err));
+        bot.reply(message, JSON.stringify(err));
        //bot.reply(message, `${err}`);
        //bot.reply(message, 'For 401 errors, make sure you\'ve authorized me!');
     });

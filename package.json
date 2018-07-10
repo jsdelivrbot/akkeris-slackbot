@@ -18,6 +18,7 @@
     "express-hbs": "^1.0.4",
     "express-http-proxy": "^1.2.0",
     "express-session": "^1.15.6",
+    "moment": "^2.22.2",
     "mongodb": "^3.1.1",
     "node-env-file": "^0.1.8",
     "querystring": "^0.2.0",
