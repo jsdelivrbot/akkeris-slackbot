@@ -5,13 +5,15 @@ if (!process.env.clientId || !process.env.clientSecret || !process.env.PORT) {
 var Botkit = require('botkit');
 const request = require('request');
 const session = require('express-session');
-//var MongoClient = require('mongodb').MongoClient;
+const axios = require('axios');
+
 const clientURI = process.env.CLIENT_URI;
 const authEndpoint = process.env.OAUTH_ENDPOINT;
 const databaseUrl = process.env.DATABASE_URL;
 const akaClientId = process.env.AKA_CLIENT_ID;
 const akaClientSecret = process.env.AKA_CLIENT_SECRET;
 const sessionSecret = process.env.SESSION_SECRET;
+const akkerisApi = process.env.AKKERIS_API;
 
 var bot_options = {
     clientId: process.env.clientId,
@@ -77,33 +79,28 @@ webserver.get('/', function(req, res){
   });
 })
 
-// Set up a simple storage backend for keeping a record of customers
-// who sign up for the app via the oauth
-require(__dirname + '/components/user_registration.js')(controller);
-
-// Send an onboarding message when a new team joins
-require(__dirname + '/components/onboarding.js')(controller);
-
-const axios = require('axios');
-
-controller.hears(['aka'], 'ambient', function(bot, message) {
-    bot.reply(message, `${clientURI}`);
-});
-
-/*
-const akkerisApi = process.env.AKKERIS_API;
-app.use('/api', proxy(`${akkerisApi}`, {
+webserver.use('/api', proxy(`${akkerisApi}`, {
     proxyReqOptDecorator(reqOpts, srcReq) {
       reqOpts.headers.Authorization = `Bearer ${srcReq.session.token}`;
       return reqOpts;
     },
   }));
 
-  axios.get('/api/apps');
+// Bot Messages
 
-*/
+// Set up a simple storage backend for keeping a record of customers
+// who sign up for the app via the oauth
+require(__dirname + '/components/user_registration.js')(controller);
+// Send an onboarding message when a new team joins
+require(__dirname + '/components/onboarding.js')(controller);
 
-//https://auth.octanner.io/authorize?client_id=adb781ad-a9af-4d0e-9cdf-62e277340968&scope=user&redirect_uri=akkeris.octanner.io
+controller.hears(['aka apps'], 'ambient', function(bot, message) {
+    axios.get('/api/apps').then(function(response) {
+        bot.reply(message, `${response.data}`);
+    }).catch(err => {
+        bot.reply(message, `${err}`);
+    });
+});
 
 
 function usage_tip() {
@@ -111,7 +108,7 @@ function usage_tip() {
     console.log('USAGE');
     console.log('Requred Environment Variables:');
     console.log('CLIENT_URI, OAUTH_ENDPOINT, DATABASE_URL, AKA_CLIENT_ID, AKA_CLIENT_SECRET');
-    console.log('clientID, clientSecret, PORT, SESSION_SECRET');
+    console.log('clientID, clientSecret, PORT, SESSION_SECRET, AKKERIS_API');
     console.log(' ');
     console.log('CMD: node bot.js');
     console.log('~~~~~~~~~~');
