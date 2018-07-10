@@ -92,7 +92,7 @@ require(__dirname + '/components/user_registration.js')(controller);
 // Send an onboarding message when a new team joins
 require(__dirname + '/components/onboarding.js')(controller);
 
-controller.hears(['aka apps'], 'ambient', function(bot, message) {
+controller.hears(['^aka apps\s*$'], 'ambient', function(bot, message) {
    axios.get(`${akkerisApi}/api/apps`, {
        headers: {'Authorization': `Bearer ${sessionToken}`}
    }).then(res => {
@@ -115,8 +115,7 @@ controller.hears(['aka apps'], 'ambient', function(bot, message) {
            }
        });
    }).catch(err => {
-        bot.reply(message, JSON.stringify(err));
-       //bot.reply(message, `${err}`);
+        bot.reply(message, `${err}`);
        //bot.reply(message, 'For 401 errors, make sure you\'ve authorized me!');
     });
 });
