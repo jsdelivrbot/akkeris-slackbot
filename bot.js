@@ -8,6 +8,7 @@ const session = require('express-session');
 const axios = require('axios');
 const bodyParser = require('body-parser');
 const moment = require('moment');
+const htmlToRtf = require('html-to-rtf');
 
 const clientURI = process.env.CLIENT_URI;
 const authEndpoint = process.env.OAUTH_ENDPOINT;
@@ -97,14 +98,26 @@ controller.hears(['aka apps'], 'ambient', function(bot, message) {
        headers: {'Authorization': `Bearer ${sessionToken}`}
    }).then(res => {
        let currentTime = moment().format('MMM-Do-YY-h:mm:ss');
+
+       let formattedApps = '<div>';
+       res.data.map(app => {
+        formattedApps += `<p style="color: #009788;">**⬢ ${app.name}** ${app.preview ? '- ^^preview^^' : ''}</p><br>
+        <p style="color: #982200;">***Url:***</p><p> ${app.web_url}</p><br>
+        <p style="color: #982200;">${app.git_url ? ("***😸  GitHub:***</p><p> " + app.git_url + ' \n') : ''}</p><br>`;
+       });
+       formattedApps += '</div>';
+       let rtfApps = htmlToRtf.convertHtmlToRtf(formattedApps);
+
        bot.api.files.upload({
             channels: message.channel,
-            content: JSON.stringify(res.data, null, 2),
+            content: rtfApps,
             filename: `aka-apps_${currentTime}.json`,
-            filetype: 'javascript',
+            filetype: 'rtf',
             title: `Result of 'aka apps' @ ${currentTime}`,
        }, (err, response) => {
-           bot.reply(message, JSON.stringify(err));
+           if (err){
+            bot.reply(message, JSON.stringify(err));
+           }
        });
    }).catch(err => {
         bot.reply(message, JSON.stringify(err));
