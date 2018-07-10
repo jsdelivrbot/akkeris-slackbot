@@ -16,10 +16,12 @@
     "debug": "^2.3.3",
     "express": "^4.14.0",
     "express-hbs": "^1.0.4",
+    "express-session": "^1.15.6",
     "mongodb": "^3.1.1",
     "node-env-file": "^0.1.8",
     "querystring": "^0.2.0",
     "request": "^2.87.0",
+    "session": "^0.1.0",
     "wordfilter": "^0.2.6"
   },
   "devDependencies": {},

@@ -4,12 +4,14 @@ if (!process.env.clientId || !process.env.clientSecret || !process.env.PORT) {
 
 var Botkit = require('botkit');
 const request = require('request');
+const session = require('express-session');
 //var MongoClient = require('mongodb').MongoClient;
 const clientURI = process.env.CLIENT_URI;
 const authEndpoint = process.env.OAUTH_ENDPOINT;
 const databaseUrl = process.env.DATABASE_URL;
 const akaClientId = process.env.AKA_CLIENT_ID;
 const akaClientSecret = process.env.AKA_CLIENT_SECRET;
+const sessionSecret = process.env.SESSION_SECRET;
 
 var bot_options = {
     clientId: process.env.clientId,
@@ -34,6 +36,13 @@ controller.startTicking();
 
 // Set up an Express-powered webserver to expose oauth and webhook endpoints
 var webserver = require(__dirname + '/components/express_webserver.js')(controller);
+
+webserver.use(session({
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    name: 'akkeris',
+}));
 
 webserver.use((req, res, next) => {
     if (req.session.token || req.path === '/oauth/callback') {
@@ -104,7 +113,7 @@ function usage_tip() {
     console.log('USAGE');
     console.log('Requred Environment Variables:');
     console.log('CLIENT_URI, OAUTH_ENDPOINT, DATABASE_URL, AKA_CLIENT_ID, AKA_CLIENT_SECRET');
-    console.log('clientID, clientSecret, PORT');
+    console.log('clientID, clientSecret, PORT, SESSION_SECRET');
     console.log(' ');
     console.log('CMD: node bot.js');
     console.log('~~~~~~~~~~');
