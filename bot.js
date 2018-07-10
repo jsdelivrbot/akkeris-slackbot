@@ -92,14 +92,14 @@ require(__dirname + '/components/user_registration.js')(controller);
 require(__dirname + '/components/onboarding.js')(controller);
 
 controller.hears(['aka apps'], 'ambient', function(bot, message) {
-
    axios.get(`${akkerisApi}/api/apps`, {
        headers: {'Authorization': `Bearer ${sessionToken}`}
    }).then(res => {
-       bot.reply(message, `${res.data}`);
+       bot.reply(message, JSON.stringify(res.data));
    }).catch(err => {
-       bot.reply(message, `${err}`);
-       bot.reply(message, 'For 401 errors, make sure you\'ve authorized me!');
+       bot.reply(message, JSON.stringify(err));
+       //bot.reply(message, `${err}`);
+       //bot.reply(message, 'For 401 errors, make sure you\'ve authorized me!');
     });
 });
 
