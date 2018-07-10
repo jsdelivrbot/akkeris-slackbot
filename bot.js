@@ -3,6 +3,13 @@ if (!process.env.clientId || !process.env.clientSecret || !process.env.PORT) {
 }
 
 var Botkit = require('botkit');
+const request = require('request');
+//var MongoClient = require('mongodb').MongoClient;
+const clientURI = process.env.CLIENT_URI;
+const authEndpoint = process.env.OAUTH_ENDPOINT;
+const databaseUrl = process.env.DATABASE_URL;
+const akaClientId = process.env.AKA_CLIENT_ID;
+const akaClientSecret = process.env.AKA_CLIENT_SECRET;
 
 var bot_options = {
     clientId: process.env.clientId,
@@ -12,11 +19,12 @@ var bot_options = {
 };
 
 // Use a mongo database if specified, otherwise store in a JSON file local to the app.
-if (process.env.DATABASE_URL) {
-    var mongoStorage = require('botkit-storage-mongo')({mongoUri: process.env.DATABASE_URL});
+if (databaseUrl) {
+    var mongoStorage = require('botkit-storage-mongo')({mongoUri: databaseUrl});
     bot_options.storage = mongoStorage;
 } else {
-    bot_options.json_file_store = __dirname + '/.data/db/'; // store user data in a simple JSON format
+    usage_tip();
+    return -1;
 }
 
 // Create the Botkit controller, which controls all instances of the bot.
@@ -26,6 +34,31 @@ controller.startTicking();
 
 // Set up an Express-powered webserver to expose oauth and webhook endpoints
 var webserver = require(__dirname + '/components/express_webserver.js')(controller);
+
+webserver.use((req, res, next) => {
+    if (req.session.token || req.path === '/oauth/callback') {
+        next();
+    } else {
+        req.session.redirect = req.originalUrl;
+        res.redirect(`${authEndpoint}/authorize?client_id=${akaClientId}&redirect_uri=${encodeURIComponent(`${clientURI}/oauth/callback`)}`);
+    }
+});
+
+webserver.get('/oauth/callback', (req, res) => {
+    request.post(`${authEndpoint}/access_token`, {
+      form: {
+        client_id: akaClientId,
+        client_secret: akaClientSecret,
+        code: req.query.code,
+        grant_type: 'authorization_code',
+      },
+    }, (err, response, body) => {
+      req.session.token = JSON.parse(body).access_token;
+      res.redirect(req.session.redirect || '/');
+      console.log(`req.session.token = ${req.session.token}`);
+      console.log(`req.query.code = ${req.query.code}`);
+    });
+  });
 
 webserver.get('/', function(req, res){
   res.render('index', {
@@ -44,11 +77,8 @@ require(__dirname + '/components/onboarding.js')(controller);
 
 const axios = require('axios');
 
-controller.hears(['aka apps'], 'ambient', function(bot, message) {
-
-
-
-    bot.reply(message, );
+controller.hears(['aka'], 'ambient', function(bot, message) {
+    bot.reply(message, `${CLIENT_URI}`);
 });
 
 
@@ -66,10 +96,16 @@ app.use('/api', proxy(`${akkerisApi}`, {
 
 */
 
+//https://auth.octanner.io/authorize?client_id=adb781ad-a9af-4d0e-9cdf-62e277340968&scope=user&redirect_uri=akkeris.octanner.io
+
 
 function usage_tip() {
     console.log('~~~~~~~~~~');
-    console.log('Usage:');
-    console.log('clientId=<MY SLACK CLIENT ID> clientSecret=<MY CLIENT SECRET> PORT=3000 node bot.js');
+    console.log('USAGE');
+    console.log('Requred Environment Variables:');
+    console.log('CLIENT_URI, OAUTH_ENDPOINT, DATABASE_URL, AKA_CLIENT_ID, AKA_CLIENT_SECRET');
+    console.log('clientID, clientSecret, PORT');
+    console.log(' ');
+    console.log('CMD: node bot.js');
     console.log('~~~~~~~~~~');
 }
