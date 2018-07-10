@@ -7,8 +7,7 @@ const request = require('request');
 const session = require('express-session');
 const axios = require('axios');
 const bodyParser = require('body-parser');
-const moment = require('moment');
-const htmlToRtf = require('html-to-rtf');
+const moment = require('moment-timezone');
 
 const clientURI = process.env.CLIENT_URI;
 const authEndpoint = process.env.OAUTH_ENDPOINT;
@@ -97,22 +96,20 @@ controller.hears(['aka apps'], 'ambient', function(bot, message) {
    axios.get(`${akkerisApi}/api/apps`, {
        headers: {'Authorization': `Bearer ${sessionToken}`}
    }).then(res => {
-       let currentTime = moment().format('MMM-Do-YY-h:mm:ss');
+       let currentTime = moment().tz('America/Denver').format('MMM-Do-YY-h:mm:ss');
 
-       let formattedApps = '<div>';
+       let formattedApps = '';
        res.data.map(app => {
-        formattedApps += `<p style="color: #009788;">**⬢ ${app.name}** ${app.preview ? '- ^^preview^^' : ''}</p><br>
-        <p style="color: #982200;">***Url:***</p><p> ${app.web_url}</p><br>
-        <p style="color: #982200;">${app.git_url ? ("***😸  GitHub:***</p><p> " + app.git_url + ' \n') : ''}</p><br>`;
+        formattedApps += `**⬢ ${app.name}** ${app.preview ? '- ^^preview^^' : ''}
+        ***Url:*** ${app.web_url}
+        ${app.git_url ? ("***GitHub:*** " + app.git_url + ' \n') : ''}`;
        });
-       formattedApps += '</div>';
-       let rtfApps = htmlToRtf.convertHtmlToRtf(formattedApps);
 
        bot.api.files.upload({
             channels: message.channel,
-            content: rtfApps,
-            filename: `aka-apps_${currentTime}.json`,
-            filetype: 'rtf',
+            content: formattedApps,
+            filename: `aka-apps_${currentTime}.txt`,
+            filetype: 'text',
             title: `Result of 'aka apps' @ ${currentTime}`,
        }, (err, response) => {
            if (err){
