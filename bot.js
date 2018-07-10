@@ -56,8 +56,6 @@ webserver.use((req, res, next) => {
 webserver.get('/oauth/callback', (req, res) => {
     console.log(`Client ID: ${akaClientId}`);
     console.log(`Client Secret: ${akaClientSecret}`);
-    console.log('req: ' + JSON.stringify(req));
-    console.log('res: ' + JSON.stringify(res));
     request.post(`${authEndpoint}/access_token`, {
       form: {
         client_id: akaClientId,
