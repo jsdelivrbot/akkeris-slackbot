@@ -100,7 +100,7 @@ controller.hears(['aka apps'], 'ambient', function(bot, message) {
 
        let formattedApps = '';
        res.data.map(app => {
-        formattedApps += `⬢ ${app.name} ${app.preview ? '- ^^preview^^' : ''}\n\tUrl: ${app.web_url}\n\t${app.git_url ? ("GitHub: " + app.git_url + ' \n') : '\n'}`;
+        formattedApps += `⬢ ${app.name} ${app.preview ? '- ^^preview^^' : ''}\n\tUrl: ${app.web_url}\n\t${app.git_url ? ("GitHub: " + app.git_url + ' \n\n') : '\n'}`;
        });
 
        bot.api.files.upload({
