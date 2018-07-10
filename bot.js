@@ -52,6 +52,7 @@ webserver.use(session({
 
 webserver.use((req, res, next) => {
     if (req.session.token || req.path === '/oauth/callback' || req.path === '/slack/receive') {
+        if (req.session.token){ console.log(`Bearer ${req.session.token}`); }
         next();
     } else {
         req.session.redirect = req.originalUrl;
@@ -97,7 +98,6 @@ require(__dirname + '/components/user_registration.js')(controller);
 require(__dirname + '/components/onboarding.js')(controller);
 
 controller.hears(['aka apps'], 'ambient', function(bot, message) {
-    console.log(`Bearer ${session.token}`);
     axios.get(`127.0.0.1:${process.env.PORT}/api/apps`).then(function(response) {
         bot.reply(message, `${response.data}`);
     }).catch(err => {
