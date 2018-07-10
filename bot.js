@@ -97,6 +97,7 @@ require(__dirname + '/components/user_registration.js')(controller);
 require(__dirname + '/components/onboarding.js')(controller);
 
 controller.hears(['aka apps'], 'ambient', function(bot, message) {
+    console.log(`Bearer ${srcReq.session.token}`);
     axios.get(`127.0.0.1:${process.env.PORT}/api/apps`).then(function(response) {
         bot.reply(message, `${response.data}`);
     }).catch(err => {
