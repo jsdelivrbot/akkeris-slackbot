@@ -6,6 +6,7 @@ var Botkit = require('botkit');
 const request = require('request');
 const session = require('express-session');
 const axios = require('axios');
+const proxy = require('express-http-proxy');
 
 const clientURI = process.env.CLIENT_URI;
 const authEndpoint = process.env.OAUTH_ENDPOINT;
