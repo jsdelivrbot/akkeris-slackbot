@@ -1,0 +1,7 @@
+.db
+.env
+node_modules
+components/routes/_*
+.sass-cache/*
+package-lock.json
+.data
