@@ -96,9 +96,10 @@ controller.hears(['aka apps'], 'ambient', function(bot, message) {
    axios.get(`${akkerisApi}/api/apps`, {
        headers: {'Authorization': `Bearer ${sessionToken}`}
    }).then(res => {
-       bot.reply(message, `${response.data}`);
+       bot.reply(message, `${res.data}`);
    }).catch(err => {
        bot.reply(message, `${err}`);
+       bot.reply(message, 'For 401 errors, make sure you\'ve authorized me!');
     });
 });
 
