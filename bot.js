@@ -116,10 +116,10 @@ controller.hears(['^aka apps\s*$'], 'ambient', function(bot, message) {
        });
    }).catch(err => {
         bot.reply(message, `${err}`);
-       //bot.reply(message, 'For 401 errors, make sure you\'ve authorized me!');
+        bot.reply(message, 'For 401 errors, make sure you\'ve authorized me!');
+        bot.reply(message, 'https://akaslackbot-alamo.maruapp.octanner.io/');
     });
 });
-
 
 controller.hears(['^aka apps:info -a [0-9a-zA-Z]+-[0-9a-zA-Z]+\s*$'], 'ambient', function(bot, message) {
     let appName = message.text.replace('aka apps:info -a ', '');
